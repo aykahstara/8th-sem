@@ -1,2 +1,152 @@
-Practical Questions - https://docs.google.com/document/d/1HbvZLVzEvcs29E7GEAxEVimLdLJjsSZnfVPe4lQ4oeE/edit?usp=sharing
+1. Design the EER and SQL for the following consitions: 
+a. Employee(ID,Name(fname,mname,lname),gender,DOB,Address,salary) 
+b. Dependent(Name,gender,DOB,Relationship) 
+c. Department(ID,Location,Name) 
+d. Project(ID,NameEmp_id,Dept_id) 
+These table having following relationship. 
+• Employee have 1 supervisor and N supervise work on the Supervision of the supervisor. 
+• Employee works for the department and department control the project.
+• Employee work on project 
+• Employee have dependent family 
+Now insert at least 5 employee information and 1 dependent of each employees four department and five project and write query to find the higher salary employee of which project and from which department.
+
++-------------+         +--------------+        +-------------+        +-------------+
+|  Department |         |   Employee   |        |  Dependent  |        |   Project   |
+|-------------|         |--------------|        |-------------|        |-------------|
+| ID (PK)     | 1     N | ID (PK)      | 1    N | ID (PK)     | 1    N | ID (PK)     |
+| Location    |---------| FName        |--------| EmpID (FK)  |--------| EmpID (FK)  |
+| Name        |         | MName        |        | Name        |        | DeptID (FK) |
++-------------+         | LName        |        | Gender      |        | Name        |
+                        | Gender       |        | DOB         |        +-------------+
+                        | DOB          |        | Relationship|
+                        | Address      |        +-------------+
+                        | Salary       |
+                        | SupervisorID |
+                        | DeptID (FK)  |
+                        +--------------+
+Or - https://drive.google.com/file/d/1DH3KTFQndM2Ark3KFlC5sPwpqFIE4QRr/view?usp=sharing
+
+Detailed Explanation of the Relationships:
+Employee - Supervisor Relationship: An employee can have one supervisor, which is a self-referential relationship within the Employee table.
+Employee - Department Relationship: Each employee belongs to one department, establishing a foreign key relationship from Employee.DeptID to Department.ID.
+Department - Project Relationship: Each department can control multiple projects, establishing a foreign key relationship from Project.DeptID to Department.ID.
+Employee - Project Relationship: Each employee can work on multiple projects, establishing a foreign key relationship from Project.EmpID to Employee.ID.
+Employee - Dependent Relationship: Each employee can have multiple dependents, establishing a foreign key relationship from Dependent.EmpID to Employee.ID.
+In the diagram:
+
+The lines indicate relationships between entities.
+1 and N indicate cardinality (one-to-many or many-to-one).
+
+-- Create tables
+
+-- Create Department table first as it will be referenced by Employee and Project tables
+CREATE TABLE Department (
+    ID INT PRIMARY KEY,
+    Location VARCHAR(100),
+    Name VARCHAR(50)
+);
+
+-- Create Employee table
+CREATE TABLE Employee (
+    ID INT PRIMARY KEY,
+    FName VARCHAR(50),
+    MName VARCHAR(50),
+    LName VARCHAR(50),
+    Gender CHAR(1),
+    DOB DATE,
+    Address VARCHAR(100),
+    Salary DECIMAL(10, 2),
+    SupervisorID INT,
+    DeptID INT,
+    FOREIGN KEY (SupervisorID) REFERENCES Employee(ID) ON DELETE SET NULL,
+    FOREIGN KEY (DeptID) REFERENCES Department(ID)
+);
+
+-- Create Dependent table
+CREATE TABLE Dependent (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    EmpID INT,
+    Name VARCHAR(50),
+    Gender CHAR(1),
+    DOB DATE,
+    Relationship VARCHAR(50),
+    FOREIGN KEY (EmpID) REFERENCES Employee(ID)
+);
+
+-- Create Project table
+CREATE TABLE Project (
+    ID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    EmpID INT,
+    DeptID INT,
+    FOREIGN KEY (EmpID) REFERENCES Employee(ID),
+    FOREIGN KEY (DeptID) REFERENCES Department(ID)
+);
+
+-- Insert sample data into Department table
+INSERT INTO Department (ID, Location, Name) VALUES
+(1, 'Location1', 'Dept1'),
+(2, 'Location2', 'Dept2'),
+(3, 'Location3', 'Dept3'),
+(4, 'Location4', 'Dept4');
+
+-- Insert sample data into Employee table
+INSERT INTO Employee (ID, FName, MName, LName, Gender, DOB, Address, Salary, SupervisorID, DeptID) VALUES
+(1, 'John', 'A', 'Doe', 'M', '1980-01-01', '123 Street', 50000.00, NULL, 1),
+(2, 'Jane', 'B', 'Smith', 'F', '1985-02-02', '456 Avenue', 60000.00, 1, 2),
+(3, 'Jim', 'C', 'Brown', 'M', '1990-03-03', '789 Boulevard', 55000.00, 1, 3),
+(4, 'Jill', 'D', 'Jones', 'F', '1995-04-04', '101 Road', 65000.00, 2, 4),
+(5, 'Jack', 'E', 'White', 'M', '2000-05-05', '202 Highway', 70000.00, 3, 1);
+
+-- Insert sample data into Dependent table
+INSERT INTO Dependent (EmpID, Name, Gender, DOB, Relationship) VALUES
+(1, 'Alice', 'F', '2005-06-06', 'Daughter'),
+(2, 'Bob', 'M', '2010-07-07', 'Son'),
+(3, 'Charlie', 'M', '2015-08-08', 'Son'),
+(4, 'Diana', 'F', '2020-09-09', 'Daughter'),
+(5, 'Eve', 'F', '2025-10-10', 'Daughter');
+
+-- Insert sample data into Project table
+INSERT INTO Project (ID, Name, EmpID, DeptID) VALUES
+(1, 'Project1', 1, 1),
+(2, 'Project2', 2, 2),
+(3, 'Project3', 3, 3),
+(4, 'Project4', 4, 4),
+(5, 'Project5', 5, 1);
+
+Query to Find the Highest Salary Employee for Each Project
+SELECT P.ID AS ProjectID, P.Name AS ProjectName, E.FName AS EmployeeFirstName, E.LName AS EmployeeLastName, E.Salary, D.Name AS DepartmentName
+FROM Project P
+JOIN Employee E ON P.EmpID = E.ID
+JOIN Department D ON P.DeptID = D.ID
+ORDER BY E.Salary DESC
+LIMIT 1;
+
+
+2. Create table employee having name, occupation, working date and Working hour. Insert 5 data on employee. Also create trigger before_employee_insert during the insertion if working hour is less then 0 automatically trigger is activated to change the negative value to 0.
+
+CREATE TABLE Employee_New ( ID INT PRIMARY KEY, Name VARCHAR(100), Occupation VARCHAR(50), WorkingDate DATE, WorkingHour INT );
+
+DELIMITER // 
+CREATE TRIGGER before_employee_insert 
+BEFORE INSERT ON Employee_New 
+FOR EACH ROW 
+BEGIN 
+IF NEW.WorkingHour < 0 THEN 
+SET NEW.WorkingHour = 0; 
+END IF; 
+END; 
+// 
+DELIMITER ;
+
+INSERT INTO Employee_New (ID, Name, Occupation, WorkingDate, WorkingHour) VALUES
+   (1, 'Alice', 'Engineer', '2023-01-01', 8),
+    (2, 'Bob', 'Technician', '2023-02-01', 7),
+    (3, 'Charlie', 'Manager', '2023-03-01', -2),
+    (4, 'Diana', 'Analyst', '2023-04-01', 9),
+   (5, 'Eve', 'Consultant', '2023-05-01', -5);
+
+SELECT * FROM Employee_New;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lab Report - https://docs.google.com/document/d/1yO2VcqOCuF_Pn_296TUmOPD90zmadyaAQluQBBsiGS8/edit
