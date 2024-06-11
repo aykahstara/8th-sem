@@ -1,11 +1,10 @@
-Map reduce Set A:
-create a text file in VS code and save it as input.txt
+-------Map reduce Set A----
+####create a text file in VS code and save it as input.txt
 Deer Bear River
 Car Car River
 Deer Car Bear
 
-Create a new file and save it as mapreduce.py
-
+####Create a new file and save it as mapreduce.py
 from collections import defaultdict
 
 def read_input(file_path):
@@ -41,4 +40,4 @@ def main(file_path):
 if __name__ == '__main__':
     main('input.txt')
 
-Open Terminal and write: python mapreduce.py
+#####Open Terminal and write: python mapreduce.py
